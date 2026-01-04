@@ -2,7 +2,9 @@
 
 ExpTrack is a high-performance, visually stunning personal finance dashboard built with **React**, **Vite**, and **Tailwind CSS**. It features a state-of-the-art glassmorphism design with deep-dive analytics, interactive charts, and a cinematic user experience.
 
-![Dashboard Mockup](public/dashboard_preview.png) *(Note: Add your own screenshot here)*
+
+![Uploading Screenshot (155).png…]()
+<img width="1920" height="1080" alt="Screenshot (150)" src="https://github.com/user-attachments/assets/cb0700f4-7007-49e5-9dcf-d9b310251839" />
 
 ## ✨ Key Features
 
