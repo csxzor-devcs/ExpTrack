@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2 } from 'lucide-react';
 
 const ExpenseTracker = () => {
     // --- Helpers ---
@@ -46,6 +46,7 @@ const ExpenseTracker = () => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
     const [viewingHistory, setViewingHistory] = useState(null); // 'weekly' or 'monthly'
+    const [editingExpense, setEditingExpense] = useState(null);
     const fileInputRef = useRef(null);
 
     const [newExpense, setNewExpense] = useState({
@@ -207,13 +208,22 @@ const ExpenseTracker = () => {
         e.preventDefault();
         if (!newExpense.amount || !newExpense.date) return;
 
-        const entry = {
-            id: Date.now(),
-            ...newExpense,
-            amount: parseFloat(newExpense.amount)
-        };
+        if (editingExpense) {
+            setExpenses(expenses.map(exp =>
+                exp.id === editingExpense.id
+                    ? { ...editingExpense, ...newExpense, amount: parseFloat(newExpense.amount) }
+                    : exp
+            ));
+            setEditingExpense(null);
+        } else {
+            const entry = {
+                id: Date.now(),
+                ...newExpense,
+                amount: parseFloat(newExpense.amount)
+            };
+            setExpenses([entry, ...expenses]);
+        }
 
-        setExpenses([entry, ...expenses]);
         setNewExpense({
             date: formatToLocalDate(new Date()),
             category: 'Food',
@@ -221,6 +231,28 @@ const ExpenseTracker = () => {
             description: ''
         });
         setIsFormOpen(false);
+    };
+
+    const handleEditClick = (expense) => {
+        setEditingExpense(expense);
+        setNewExpense({
+            date: expense.date,
+            category: expense.category,
+            amount: expense.amount.toString(),
+            description: expense.description
+        });
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setIsFormOpen(false);
+        setEditingExpense(null);
+        setNewExpense({
+            date: formatToLocalDate(new Date()),
+            category: 'Food',
+            amount: '',
+            description: ''
+        });
     };
 
     const handleDelete = (id) => {
@@ -620,7 +652,14 @@ const ExpenseTracker = () => {
                                             {formatCurrency(expense.amount)}
                                         </div>
 
-                                        <div className="col-span-1 text-right flex justify-end pr-2">
+                                        <div className="col-span-1 text-right flex justify-end gap-2 pr-2">
+                                            <button
+                                                onClick={() => handleEditClick(expense)}
+                                                className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
+                                                title="Edit Entry"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
                                             <button
                                                 onClick={() => handleDelete(expense.id)}
                                                 className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
@@ -650,8 +689,10 @@ const ExpenseTracker = () => {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
                     <div className={`${glassTheme.card} rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300 slide-in-from-bottom-8`}>
                         <div className={`p-6 border-b flex justify-between items-center ${darkMode ? 'border-slate-700/50' : 'border-slate-200/50'}`}>
-                            <h2 className={`text-xl font-extrabold ${darkMode ? 'text-white' : 'text-slate-800'}`}>Add Transaction</h2>
-                            <button onClick={() => setIsFormOpen(false)} className={`p-2 rounded-full hover:bg-black/5 ${glassTheme.textMuted} hover:text-slate-500 transition-all`}>✕</button>
+                            <h2 className={`text-xl font-extrabold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                {editingExpense ? 'Edit Transaction' : 'Add Transaction'}
+                            </h2>
+                            <button onClick={handleCloseForm} className={`p-2 rounded-full hover:bg-black/5 ${glassTheme.textMuted} hover:text-slate-500 transition-all`}>✕</button>
                         </div>
 
                         <form onSubmit={handleAddExpense} className="p-8 space-y-6">
@@ -715,13 +756,13 @@ const ExpenseTracker = () => {
                             <div className="pt-2 flex gap-4">
                                 <button
                                     type="button"
-                                    onClick={() => setIsFormOpen(false)}
+                                    onClick={handleCloseForm}
                                     className={`flex-1 px-4 py-3 border font-bold rounded-2xl transition-all hover:bg-black/5 ${darkMode ? 'border-slate-700 text-slate-300' : 'border-slate-300 text-slate-600'}`}
                                 >
                                     Cancel
                                 </button>
                                 <button type="submit" className={`flex-1 ${glassTheme.buttonPri}`}>
-                                    Save Entry
+                                    {editingExpense ? 'Update Entry' : 'Save Entry'}
                                 </button>
                             </div>
                         </form>
