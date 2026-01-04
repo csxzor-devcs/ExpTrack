@@ -35,7 +35,7 @@ ExpTrack is a high-performance, visually stunning personal finance dashboard bui
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/exptrack.git
+   git clone https://github.com/csxzor-devcs/ExpTrack.git
    cd exptrack
    ```
 
@@ -62,4 +62,4 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-Built with ❤️ by [Your Name]
+Built with ❤️ by Caleb (csxzor@gmail.com)
