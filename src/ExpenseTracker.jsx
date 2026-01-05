@@ -718,7 +718,7 @@ const ExpenseTracker = () => {
                             </div>
                             <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-slate-800'}`}>Activity</h3>
                         </div>
-                        <div className="flex-1 relative h-56 mt-4">
+                        <div className="flex-1 relative h-64 mt-4">
                             {/* Subtle Grid Lines */}
                             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
                                 {[...Array(5)].map((_, i) => (
@@ -1234,7 +1234,8 @@ const SimpleBarChart = ({ data, darkMode, selectedDate, onBarClick }) => {
     return (
         <>
             {data.map((item, index) => {
-                const heightPercent = Math.max((item.value / maxValue) * 100, 6);
+                // Scale to 80% to leave room for the label at the bottom
+                const heightPercent = Math.max((item.value / maxValue) * 80, 6);
                 const isSelected = selectedDate === item.fullDate;
                 const isAnySelected = selectedDate !== null;
 
