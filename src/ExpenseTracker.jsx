@@ -474,7 +474,7 @@ const ExpenseTracker = () => {
                                 ))}
                             </div>
 
-                            <div className="absolute inset-0 flex items-end justify-between gap-3">
+                            <div className={`absolute inset-0 flex items-end justify-between gap-1 md:gap-3`}>
                                 {stats.dailyActivityData.length > 0 ? (
                                     <SimpleBarChart
                                         data={stats.dailyActivityData}
@@ -642,7 +642,7 @@ const ExpenseTracker = () => {
                                         </div>
 
                                         {/* Desktop View */}
-                                        <div className={`col-span-2 text-xs flex items-center gap-2 pl-2 ${glassTheme.textMuted} font-bold`}>
+                                        <div className={`col-span-2 text-xs hidden md:flex items-center gap-2 pl-2 ${glassTheme.textMuted} font-bold`}>
                                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
                                             {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                                         </div>
@@ -656,7 +656,7 @@ const ExpenseTracker = () => {
                                             </span>
                                         </div>
 
-                                        <div className="col-span-3 text-sm md:block flex justify-between">
+                                        <div className="col-span-3 text-sm hidden md:block">
                                             <span
                                                 className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-300 group-hover:translate-x-1`}
                                                 style={{
