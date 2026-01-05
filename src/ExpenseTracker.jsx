@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2, LogOut, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2, LogOut, Loader2, UserX } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabaseClient';
 
@@ -308,6 +308,33 @@ const ExpenseTracker = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        if (!confirm("Are you sure you want to delete your account? This action cannot be undone and will delete all your data.")) return;
+
+        const doubleCheck = confirm("Please confirm again. All your expenses will be lost forever. Are you absolutely sure?");
+        if (!doubleCheck) return;
+
+        try {
+            setLoadingData(true);
+            // 1. Delete all expenses for the user
+            const { error: deleteDataError } = await supabase
+                .from('expenses')
+                .delete()
+                .eq('user_id', user.id);
+
+            if (deleteDataError) throw deleteDataError;
+
+            // 2. Sign out the user
+            await signOut();
+            alert("Account data deleted and you have been logged out.");
+
+        } catch (error) {
+            console.error("Error deleting account data:", error);
+            alert("Error deleting account data.");
+            setLoadingData(false);
+        }
+    };
+
     const handleExport = () => {
         const dataStr = JSON.stringify(expenses, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
@@ -444,6 +471,14 @@ const ExpenseTracker = () => {
                             title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                         >
                             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+
+                        <button
+                            onClick={handleDeleteAccount}
+                            className={`${glassTheme.buttonSec} hover:text-red-500 active:text-red-600 border-red-200/50`}
+                            title="Delete Account"
+                        >
+                            <UserX size={20} className={darkMode ? 'text-red-400' : 'text-red-500'} />
                         </button>
 
                         <button
