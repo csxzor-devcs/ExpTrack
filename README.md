@@ -15,7 +15,7 @@ ExpTrack is a high-performance, visually stunning personal finance dashboard bui
 -   **🔍 Advanced Filtering**: Real-time search and multi-category/date filtering in the transaction ledger.
 -   **🚀 Data Portability**: Full support for **Importing/Exporting** your data via JSON files.
 -   **📱 Fully Responsive**: A seamless experience across mobile, tablet, and desktop.
--   **💾 Local Persistence**: All data is automatically saved to your browser's `localStorage`.
+-   **☁️ Cloud Sync**: Secure user accounts and real-time database storage via Supabase.
 
 ## 🛠️ Tech Stack
 
@@ -48,6 +48,18 @@ ExpTrack is a high-performance, visually stunning personal finance dashboard bui
    ```bash
    npm run dev
    ```
+
+### Database Setup (Supabase)
+
+1.  **Create Project**: Go to [Supabase](https://supabase.com) and create a new project.
+2.  **Create Table**: Create a new table named `expenses` with these columns:
+    *   `id` (int8, Primary Key, Identity)
+    *   `user_id` (uuid, default `auth.uid()`)
+    *   `date` (text)
+    *   `category` (text)
+    *   `amount` (numeric)
+    *   `description` (text)
+3.  **Configure `.env`**: Copy `.env.example` to `.env` and add your Supabase credentials.
 
 ## 📸 Screenshots
 

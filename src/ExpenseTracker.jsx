@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2, LogOut, Loader2 } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+import { supabase } from './lib/supabaseClient';
 
 const ExpenseTracker = () => {
     // --- Helpers ---
@@ -18,22 +20,10 @@ const ExpenseTracker = () => {
     };
 
     // --- State ---
-    const [expenses, setExpenses] = useState(() => {
-        const saved = localStorage.getItem('myExpenses');
-        if (saved) return JSON.parse(saved);
-        const today = new Date();
-        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-        const twoDaysAgo = new Date(today); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-        const threeDaysAgo = new Date(today); threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-        return [
-            { id: 1, date: formatToLocalDate(today), category: 'Food', amount: 350.00, description: 'Lunch with colleagues' },
-            { id: 2, date: formatToLocalDate(today), category: 'Transport', amount: 45.00, description: 'Metro' },
-            { id: 3, date: formatToLocalDate(yesterday), category: 'Utilities', amount: 1200.00, description: 'Internet Bill' },
-            { id: 4, date: formatToLocalDate(twoDaysAgo), category: 'Entertainment', amount: 850.00, description: 'Movie Night' },
-            { id: 5, date: formatToLocalDate(threeDaysAgo), category: 'Food', amount: 210.00, description: 'Groceries' }
-        ];
-    });
+    // --- State ---
+    const { user, signOut } = useAuth();
+    const [loadingData, setLoadingData] = useState(true);
+    const [expenses, setExpenses] = useState([]);
 
     // Dark Mode State
     const [darkMode, setDarkMode] = useState(() => {
@@ -58,8 +48,29 @@ const ExpenseTracker = () => {
 
     // --- Effects ---
     useEffect(() => {
-        localStorage.setItem('myExpenses', JSON.stringify(expenses));
-    }, [expenses]);
+        if (!user) return;
+
+        const fetchExpenses = async () => {
+            setLoadingData(true);
+            try {
+                const { data, error } = await supabase
+                    .from('expenses')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('date', { ascending: false });
+
+                if (error) throw error;
+                setExpenses(data || []);
+            } catch (error) {
+                console.error('Error fetching expenses:', error);
+                // Fallback to local state if needed? For now just log.
+            } finally {
+                setLoadingData(false);
+            }
+        };
+
+        fetchExpenses();
+    }, [user]);
 
     useEffect(() => {
         localStorage.setItem('theme', darkMode ? 'dark' : 'light');
@@ -204,24 +215,49 @@ const ExpenseTracker = () => {
     }, [expenses, filterText, selectedCategory, selectedDate]);
 
     // --- Handlers ---
-    const handleAddExpense = (e) => {
+    const handleAddExpense = async (e) => {
         e.preventDefault();
         if (!newExpense.amount || !newExpense.date) return;
+        if (!user) return;
 
-        if (editingExpense) {
-            setExpenses(expenses.map(exp =>
-                exp.id === editingExpense.id
-                    ? { ...editingExpense, ...newExpense, amount: parseFloat(newExpense.amount) }
-                    : exp
-            ));
-            setEditingExpense(null);
-        } else {
-            const entry = {
-                id: Date.now(),
-                ...newExpense,
-                amount: parseFloat(newExpense.amount)
-            };
-            setExpenses([entry, ...expenses]);
+        const expenseData = {
+            user_id: user.id,
+            date: newExpense.date,
+            category: newExpense.category,
+            amount: parseFloat(newExpense.amount),
+            description: newExpense.description
+        };
+
+        try {
+            if (editingExpense) {
+                const { error } = await supabase
+                    .from('expenses')
+                    .update(expenseData)
+                    .eq('id', editingExpense.id)
+                    .eq('user_id', user.id);
+
+                if (error) throw error;
+
+                setExpenses(expenses.map(exp =>
+                    exp.id === editingExpense.id
+                        ? { ...exp, ...expenseData }
+                        : exp
+                ));
+                setEditingExpense(null);
+            } else {
+                const { data, error } = await supabase
+                    .from('expenses')
+                    .insert([expenseData])
+                    .select();
+
+                if (error) throw error;
+                if (data) {
+                    setExpenses([data[0], ...expenses]);
+                }
+            }
+        } catch (error) {
+            console.error("Error saving expense:", error);
+            alert("Failed to save expense. Please try again.");
         }
 
         setNewExpense({
@@ -255,8 +291,21 @@ const ExpenseTracker = () => {
         });
     };
 
-    const handleDelete = (id) => {
-        setExpenses(expenses.filter(e => e.id !== id));
+    const handleDelete = async (id) => {
+        if (!confirm("Are you sure you want to delete this expense?")) return;
+        try {
+            const { error } = await supabase
+                .from('expenses')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', user.id);
+
+            if (error) throw error;
+            setExpenses(expenses.filter(e => e.id !== id));
+        } catch (error) {
+            console.error("Error deleting expense:", error);
+            alert("Failed to delete expense.");
+        }
     };
 
     const handleExport = () => {
@@ -395,6 +444,14 @@ const ExpenseTracker = () => {
                             title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                         >
                             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+
+                        <button
+                            onClick={() => signOut()}
+                            className={glassTheme.buttonSec}
+                            title="Sign Out"
+                        >
+                            <LogOut size={20} />
                         </button>
 
                         <button onClick={handleExport} className={`${glassTheme.buttonSec} flex items-center gap-2`} title="Export Data">
@@ -607,7 +664,12 @@ const ExpenseTracker = () => {
 
                     {/* Expenses List */}
                     <div className={`divide-y ${glassTheme.divider} max-h-[600px] overflow-y-auto custom-scrollbar pb-24 md:pb-0`}>
-                        {filteredExpenses.length > 0 ? (
+                        {loadingData ? (
+                            <div className="p-20 flex flex-col items-center justify-center gap-4 text-slate-400">
+                                <Loader2 className="animate-spin" size={40} />
+                                <p className="text-sm font-medium">Loading your financial data...</p>
+                            </div>
+                        ) : filteredExpenses.length > 0 ? (
                             filteredExpenses.map((expense, idx) => {
                                 const { color, icon } = getCategoryDetails(expense.category);
                                 return (
