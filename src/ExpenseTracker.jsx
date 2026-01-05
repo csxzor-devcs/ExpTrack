@@ -848,640 +848,559 @@ const ExpenseTracker = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row h-[600px] md:h-auto">
-                        {/* Period Selector - Side Panel */}
-                        {/* Period Selector - Side Panel */}
-                        <div className={`w-full md:w-1/3 border-b md:border-b-0 md:border-r overflow-y-auto custom-scrollbar h-40 md:h-auto ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                            <div className="p-3 md:p-4 md:space-y-2 flex md:block overflow-x-auto md:overflow-x-visible gap-2 md:gap-0">
-                                {Object.values(stats.monthlyHistory).length + Object.values(stats.weeklyHistory).length > 0 ? (
-                                    <>
-                                        {stats.monthlyHistory.map((period) => (
-                                            <button
-                                                key={period.period}
-                                            // ... (keeping existing logic, just cleaning up this giant block replacement) ...
-                                            // Actually, I should use view_code_item to not overwrite too much, but I am committed to this block replacement now.
-                                            // Wait, I am replacing way too much code (lines 729-1291). That's dangerous.
-                                            // I should shrink the selection.
-                                            />
-                                        ))}
-                                    </>
-                                ) : (null)}
+
+
+                    {/* Main List */}
+                    < div className={`${glassTheme.card} rounded-3xl overflow-hidden pop-in`} style={{ animationDelay: '600ms' }}>
+                        {/* Toolbar */}
+                        < div className={`p-6 border-b ${darkMode ? 'border-slate-700/50' : 'border-slate-200/50'} flex flex-col sm:flex-row gap-4 justify-between items-center`}>
+                            <div className="relative w-full sm:w-80 group">
+                                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 ${glassTheme.textMuted} transition-colors group-focus-within:text-blue-500`} size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Search transactions..."
+                                    value={filterText}
+                                    onChange={(e) => setFilterText(e.target.value)}
+                                    className={`${glassTheme.input} pl-12`}
+                                />
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 w-full">
+                                <button
+                                    onClick={() => setIsFormOpen(true)}
+                                    className={`hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${glassTheme.buttonPri}`}
+                                >
+                                    <Plus size={16} strokeWidth={3} />
+                                    Add Expense
+                                </button>
+                                {(selectedCategory || selectedDate) && (
+                                    <button
+                                        onClick={() => { setSelectedCategory(null); setSelectedDate(null); }}
+                                        className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-2 ${darkMode ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                                            } hover:scale-105`}
+                                    >
+                                        Clear ✕
+                                    </button>
+                                )}
+                                {selectedCategory && (
+                                    <div className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider ${darkMode ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                                        }`}>
+                                        {selectedCategory}
+                                    </div>
+                                )}
+                                {selectedDate && (
+                                    <div className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider ${darkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                                        }`}>
+                                        {selectedDate}
+                                    </div>
+                                )}
+                                <div className={`text-[10px] sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl backdrop-blur-md ${darkMode ? 'bg-white/5 text-slate-300' : 'bg-black/5 text-slate-600'}`}>
+                                    {filteredExpenses.length} Records
+                                </div>
+                            </div>
+                        </div >
+
+                        {/* Table Header */}
+                        < div className={`hidden md:grid grid-cols-12 gap-4 p-5 text-[10px] font-black uppercase tracking-[0.15em] ${darkMode ? 'bg-slate-900/50 text-slate-500' : 'bg-slate-50/50 text-slate-400'}`}>
+                            <div className="col-span-2 pl-2">Date</div>
+                            <div className="col-span-4">Description</div>
+                            <div className="col-span-3">Category</div>
+                            <div className="col-span-2 text-right">Amount</div>
+                            <div className="col-span-1 text-right pr-2">Action</div>
+                        </div >
+
+                        {/* Expenses List */}
+                        < div className={`divide-y ${glassTheme.divider} max-h-[600px] overflow-y-auto custom-scrollbar pb-24 md:pb-0`}>
+                            {
+                                loadingData ? (
+                                    <div className="p-20 flex flex-col items-center justify-center gap-4 text-slate-400" >
+                                        <Loader2 className="animate-spin" size={40} />
+                                        <p className="text-sm font-medium">Loading your financial data...</p>
+                                    </div>
+                                ) : filteredExpenses.length > 0 ? (
+                                    filteredExpenses.map((expense, idx) => {
+                                        const { color, icon } = getCategoryDetails(expense.category);
+                                        return (
+                                            <div
+                                                key={expense.id}
+                                                className={`group p-6 md:grid md:grid-cols-12 md:gap-4 items-center transition-all duration-300 ${glassTheme.listHover} hover:bg-gradient-to-r ${darkMode ? 'hover:from-white/5 hover:to-transparent' : 'hover:from-black/5 hover:to-transparent'}`}
+                                                style={{ animationDelay: `${idx * 30}ms` }}
+                                            >
+                                                {/* Mobile View */}
+                                                <div className="flex justify-between md:hidden mb-1">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2.5 rounded-xl shadow-lg border border-white/10" style={{ backgroundColor: `${color}20`, color: color }}>
+                                                            {icon}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className={`text-base font-black leading-tight ${darkMode ? 'text-white' : 'text-slate-800'}`}>{expense.description}</span>
+                                                            <span className={`text-[10px] font-bold opacity-60 mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                                {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {expense.category}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-2">
+                                                        <span className={`font-black text-lg ${darkMode ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(expense.amount)}</span>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleEditClick(expense); }}
+                                                                className={`p-2 rounded-xl transition-all ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}
+                                                            >
+                                                                <Edit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleDelete(expense.id); }}
+                                                                className={`p-2 rounded-xl transition-all ${darkMode ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Desktop View */}
+                                                <div className={`col-span-2 text-xs hidden md:flex items-center gap-2 pl-2 ${glassTheme.textMuted} font-bold`}>
+                                                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                                                    {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                                </div>
+
+                                                <div className={`col-span-4 flex items-center gap-3 hidden md:flex truncate`}>
+                                                    <div className={`p-2 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${darkMode ? 'bg-slate-800/50' : 'bg-slate-100'}`} style={{ color: color }}>
+                                                        {icon}
+                                                    </div>
+                                                    <span className={`text-sm font-black tracking-tight ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                                                        {expense.description}
+                                                    </span>
+                                                </div>
+
+                                                <div className="col-span-3 text-sm hidden md:block">
+                                                    <span
+                                                        className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-300 group-hover:translate-x-1`}
+                                                        style={{
+                                                            backgroundColor: `${color}15`,
+                                                            color: color,
+                                                            border: `1px solid ${color}30`
+                                                        }}
+                                                    >
+                                                        {expense.category}
+                                                    </span>
+                                                </div>
+
+                                                <div className={`col-span-2 text-right font-black hidden md:block text-lg tracking-tighter ${darkMode ? 'text-white' : 'text-slate-950'}`}>
+                                                    {formatCurrency(expense.amount)}
+                                                </div>
+
+                                                <div className="col-span-1 text-right hidden md:flex justify-end gap-2 pr-2">
+                                                    <button
+                                                        onClick={() => handleEditClick(expense)}
+                                                        className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
+                                                        title="Edit Entry"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(expense.id)}
+                                                        className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
+                                                        title="Delete Entry"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className={`p-16 text-center flex flex-col items-center ${glassTheme.textMuted}`}>
+                                        <div className={`p-6 rounded-full mb-4 ${darkMode ? 'bg-slate-800/50' : 'bg-slate-100'}`}>
+                                            <FileText size={48} className="opacity-40" />
+                                        </div>
+                                        <p className="text-lg font-medium">No expenses found.</p>
+                                        <button onClick={() => setIsFormOpen(true)} className="text-blue-500 font-bold hover:text-blue-400 hover:underline mt-2 transition-colors">Start tracking now</button>
+                                    </div>
+                                )}
+                        </div >
+                    </div >
+                </div >
+
+                {/* Add Expense Modal */}
+                {
+                    isFormOpen && (
+                        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+                            <div className={`${glassTheme.card} rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300 slide-in-from-bottom-8`}>
+                                <div className={`p-6 border-b flex justify-between items-center ${darkMode ? 'border-slate-700/50' : 'border-slate-200/50'}`}>
+                                    <h2 className={`text-xl font-extrabold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
+                                        {editingExpense ? 'Edit Transaction' : 'Add Transaction'}
+                                    </h2>
+                                    <button onClick={handleCloseForm} className={`p-2 rounded-full hover:bg-black/5 ${glassTheme.textMuted} hover:text-slate-500 transition-all`}>✕</button>
+                                </div>
+
+                                <form onSubmit={handleAddExpense} className="p-8 space-y-6">
+                                    <div className="space-y-2">
+                                        <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Date</label>
+                                        <input
+                                            type="date"
+                                            required
+                                            value={newExpense.date}
+                                            onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                                            className={glassTheme.input}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Description</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="e.g. Netflix Subscription"
+                                            value={newExpense.description}
+                                            onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                                            className={glassTheme.input}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Amount</label>
+                                            <div className="relative">
+                                                <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${glassTheme.textMuted}`}>₹</span>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    required
+                                                    placeholder="0.00"
+                                                    value={newExpense.amount}
+                                                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                                                    className={`${glassTheme.input} pl-9 font-bold`}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Category</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={newExpense.category}
+                                                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                                                    className={`${glassTheme.input} appearance-none cursor-pointer`}
+                                                >
+                                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={handleCloseForm}
+                                            className={`flex-1 px-4 py-3 border font-bold rounded-2xl transition-all hover:bg-black/5 ${darkMode ? 'border-slate-700 text-slate-300' : 'border-slate-300 text-slate-600'}`}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button type="submit" className={`flex-1 ${glassTheme.buttonPri}`}>
+                                            {editingExpense ? 'Update Entry' : 'Save Entry'}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
-                    </div>
-                    {/* ... I need to stop this replacement, it's too big and clumsy. */}
+                    )
+                }
 
-                </div>
-            </div>
-
-            {/* Pie Chart Container */}
-            <div className={`${glassTheme.card} rounded-3xl p-6 sm:p-8 pop-in flex flex-col`} style={{ animationDelay: '500ms' }}>
-                <div className="flex items-center gap-3 mb-8">
-                    <div className={`p-2.5 rounded-xl ${darkMode ? 'bg-pink-500/20 text-pink-400' : 'bg-pink-50 text-pink-600'}`}>
-                        <PieChartIcon size={22} />
-                    </div>
-                    <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-slate-800'}`}>Breakdown</h3>
-                </div>
-                <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-6 sm:gap-10 min-h-[300px] lg:h-56">
-                    {stats.categoryData.length > 0 ? (
-                        <>
-                            <div className="w-48 h-48 shrink-0 relative hover:scale-105 transition-transform duration-500 ease-out bg-transparent select-none">
-                                <SimplePieChart
-                                    data={stats.categoryData}
-                                    darkMode={darkMode}
-                                    onSliceClick={(name) => setSelectedCategory(selectedCategory === name ? null : name)}
-                                    selectedCategory={selectedCategory}
-                                />
-                                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${darkMode ? 'text-slate-200' : 'text-black'} mb-0.5`}>Total</span>
-                                    <span className={`text-xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-950'}`}>{formatCurrency(stats.total)}</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 w-full overflow-y-auto max-h-48 pr-2 custom-scrollbar">
-                                <div className="space-y-1">
-                                    {stats.categoryData.map((cat, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
-                                            className={`w-full flex items-center justify-between text-sm group p-2 rounded-xl transition-all duration-200 ${selectedCategory === cat.name
-                                                ? (darkMode ? 'bg-white/10' : 'bg-black/5')
-                                                : 'hover:translate-x-1'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <span
-                                                    className={`w-3.5 h-3.5 rounded-full shadow-sm ring-2 ring-white/10 transition-transform ${selectedCategory === cat.name ? 'scale-125' : ''}`}
-                                                    style={{ backgroundColor: cat.color }}
-                                                ></span>
-                                                <span className={`${selectedCategory === cat.name ? (darkMode ? 'text-white' : 'text-slate-900 font-bold') : glassTheme.textMuted} transition-colors uppercase text-[11px] font-black tracking-wider`}>
-                                                    {cat.name}
-                                                </span>
-                                            </div>
-                                            <span className={`font-bold ${selectedCategory === cat.name ? (darkMode ? 'text-blue-400' : 'text-blue-600') : (darkMode ? 'text-slate-300' : 'text-slate-600')}`}>
-                                                {formatCurrency(cat.value)}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div className={`w-full h-full flex items-center justify-center text-sm ${glassTheme.textMuted}`}>No expenses yet</div>
-                    )}
-                </div>
-            </div>
-        </div>
-
-                {/* Main List */ }
-    <div className={`${glassTheme.card} rounded-3xl overflow-hidden pop-in`} style={{ animationDelay: '600ms' }}>
-        {/* Toolbar */}
-        <div className={`p-6 border-b ${darkMode ? 'border-slate-700/50' : 'border-slate-200/50'} flex flex-col sm:flex-row gap-4 justify-between items-center`}>
-            <div className="relative w-full sm:w-80 group">
-                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 ${glassTheme.textMuted} transition-colors group-focus-within:text-blue-500`} size={20} />
-                <input
-                    type="text"
-                    placeholder="Search transactions..."
-                    value={filterText}
-                    onChange={(e) => setFilterText(e.target.value)}
-                    className={`${glassTheme.input} pl-12`}
-                />
-            </div>
-            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 w-full">
+                {/* Floating Action Button (FAB) for Quick Add */}
                 <button
                     onClick={() => setIsFormOpen(true)}
-                    className={`hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${glassTheme.buttonPri}`}
+                    className={`fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 p-3.5 md:p-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-110 active:scale-90 flex items-center justify-center group ${glassTheme.buttonPri}`}
+                    title="Quick Add Expense"
                 >
-                    <Plus size={16} strokeWidth={3} />
-                    Add Expense
-                </button>
-                {(selectedCategory || selectedDate) && (
-                    <button
-                        onClick={() => { setSelectedCategory(null); setSelectedDate(null); }}
-                        className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-2 ${darkMode ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-rose-50 text-rose-600 border border-rose-100'
-                            } hover:scale-105`}
-                    >
-                        Clear ✕
-                    </button>
-                )}
-                {selectedCategory && (
-                    <div className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider ${darkMode ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'
-                        }`}>
-                        {selectedCategory}
-                    </div>
-                )}
-                {selectedDate && (
-                    <div className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider ${darkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
-                        }`}>
-                        {selectedDate}
-                    </div>
-                )}
-                <div className={`text-[10px] sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl backdrop-blur-md ${darkMode ? 'bg-white/5 text-slate-300' : 'bg-black/5 text-slate-600'}`}>
-                    {filteredExpenses.length} Records
-                </div>
-            </div>
-        </div>
-
-        {/* Table Header */}
-        <div className={`hidden md:grid grid-cols-12 gap-4 p-5 text-[10px] font-black uppercase tracking-[0.15em] ${darkMode ? 'bg-slate-900/50 text-slate-500' : 'bg-slate-50/50 text-slate-400'}`}>
-            <div className="col-span-2 pl-2">Date</div>
-            <div className="col-span-4">Description</div>
-            <div className="col-span-3">Category</div>
-            <div className="col-span-2 text-right">Amount</div>
-            <div className="col-span-1 text-right pr-2">Action</div>
-        </div>
-
-        {/* Expenses List */}
-        <div className={`divide-y ${glassTheme.divider} max-h-[600px] overflow-y-auto custom-scrollbar pb-24 md:pb-0`}>
-            {loadingData ? (
-                <div className="p-20 flex flex-col items-center justify-center gap-4 text-slate-400">
-                    <Loader2 className="animate-spin" size={40} />
-                    <p className="text-sm font-medium">Loading your financial data...</p>
-                </div>
-            ) : filteredExpenses.length > 0 ? (
-                filteredExpenses.map((expense, idx) => {
-                    const { color, icon } = getCategoryDetails(expense.category);
-                    return (
-                        <div
-                            key={expense.id}
-                            className={`group p-6 md:grid md:grid-cols-12 md:gap-4 items-center transition-all duration-300 ${glassTheme.listHover} hover:bg-gradient-to-r ${darkMode ? 'hover:from-white/5 hover:to-transparent' : 'hover:from-black/5 hover:to-transparent'}`}
-                            style={{ animationDelay: `${idx * 30}ms` }}
-                        >
-                            {/* Mobile View */}
-                            <div className="flex justify-between md:hidden mb-1">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 rounded-xl shadow-lg border border-white/10" style={{ backgroundColor: `${color}20`, color: color }}>
-                                        {icon}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className={`text-base font-black leading-tight ${darkMode ? 'text-white' : 'text-slate-800'}`}>{expense.description}</span>
-                                        <span className={`text-[10px] font-bold opacity-60 mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                                            {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {expense.category}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-2">
-                                    <span className={`font-black text-lg ${darkMode ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(expense.amount)}</span>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleEditClick(expense); }}
-                                            className={`p-2 rounded-xl transition-all ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}
-                                        >
-                                            <Edit2 size={14} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(expense.id); }}
-                                            className={`p-2 rounded-xl transition-all ${darkMode ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Desktop View */}
-                            <div className={`col-span-2 text-xs hidden md:flex items-center gap-2 pl-2 ${glassTheme.textMuted} font-bold`}>
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                                {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                            </div>
-
-                            <div className={`col-span-4 flex items-center gap-3 hidden md:flex truncate`}>
-                                <div className={`p-2 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${darkMode ? 'bg-slate-800/50' : 'bg-slate-100'}`} style={{ color: color }}>
-                                    {icon}
-                                </div>
-                                <span className={`text-sm font-black tracking-tight ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                                    {expense.description}
-                                </span>
-                            </div>
-
-                            <div className="col-span-3 text-sm hidden md:block">
-                                <span
-                                    className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all duration-300 group-hover:translate-x-1`}
-                                    style={{
-                                        backgroundColor: `${color}15`,
-                                        color: color,
-                                        border: `1px solid ${color}30`
-                                    }}
-                                >
-                                    {expense.category}
-                                </span>
-                            </div>
-
-                            <div className={`col-span-2 text-right font-black hidden md:block text-lg tracking-tighter ${darkMode ? 'text-white' : 'text-slate-950'}`}>
-                                {formatCurrency(expense.amount)}
-                            </div>
-
-                            <div className="col-span-1 text-right hidden md:flex justify-end gap-2 pr-2">
-                                <button
-                                    onClick={() => handleEditClick(expense)}
-                                    className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
-                                    title="Edit Entry"
-                                >
-                                    <Edit2 size={16} />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(expense.id)}
-                                    className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
-                                    title="Delete Entry"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })
-            ) : (
-                <div className={`p-16 text-center flex flex-col items-center ${glassTheme.textMuted}`}>
-                    <div className={`p-6 rounded-full mb-4 ${darkMode ? 'bg-slate-800/50' : 'bg-slate-100'}`}>
-                        <FileText size={48} className="opacity-40" />
-                    </div>
-                    <p className="text-lg font-medium">No expenses found.</p>
-                    <button onClick={() => setIsFormOpen(true)} className="text-blue-500 font-bold hover:text-blue-400 hover:underline mt-2 transition-colors">Start tracking now</button>
-                </div>
-            )}
-        </div>
-    </div>
-            </div >
-
-    {/* Add Expense Modal */ }
-{
-    isFormOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
-            <div className={`${glassTheme.card} rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300 slide-in-from-bottom-8`}>
-                <div className={`p-6 border-b flex justify-between items-center ${darkMode ? 'border-slate-700/50' : 'border-slate-200/50'}`}>
-                    <h2 className={`text-xl font-extrabold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-                        {editingExpense ? 'Edit Transaction' : 'Add Transaction'}
-                    </h2>
-                    <button onClick={handleCloseForm} className={`p-2 rounded-full hover:bg-black/5 ${glassTheme.textMuted} hover:text-slate-500 transition-all`}>✕</button>
-                </div>
-
-                <form onSubmit={handleAddExpense} className="p-8 space-y-6">
-                    <div className="space-y-2">
-                        <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Date</label>
-                        <input
-                            type="date"
-                            required
-                            value={newExpense.date}
-                            onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                            className={glassTheme.input}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Description</label>
-                        <input
-                            type="text"
-                            required
-                            placeholder="e.g. Netflix Subscription"
-                            value={newExpense.description}
-                            onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                            className={glassTheme.input}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Amount</label>
-                            <div className="relative">
-                                <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${glassTheme.textMuted}`}>₹</span>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    placeholder="0.00"
-                                    value={newExpense.amount}
-                                    onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                                    className={`${glassTheme.input} pl-9 font-bold`}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Category</label>
-                            <div className="relative">
-                                <select
-                                    value={newExpense.category}
-                                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                                    className={`${glassTheme.input} appearance-none cursor-pointer`}
-                                >
-                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="currentColor"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-2 flex gap-4">
-                        <button
-                            type="button"
-                            onClick={handleCloseForm}
-                            className={`flex-1 px-4 py-3 border font-bold rounded-2xl transition-all hover:bg-black/5 ${darkMode ? 'border-slate-700 text-slate-300' : 'border-slate-300 text-slate-600'}`}
-                        >
-                            Cancel
-                        </button>
-                        <button type="submit" className={`flex-1 ${glassTheme.buttonPri}`}>
-                            {editingExpense ? 'Update Entry' : 'Save Entry'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )
-}
-
-{/* Floating Action Button (FAB) for Quick Add */ }
-<button
-    onClick={() => setIsFormOpen(true)}
-    className={`fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 p-3.5 md:p-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-110 active:scale-90 flex items-center justify-center group ${glassTheme.buttonPri}`}
-    title="Quick Add Expense"
->
-    <Plus size={window.innerWidth < 768 ? 24 : 28} className="transition-transform duration-500 group-hover:rotate-90" />
-    <span className="hidden md:inline-block max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 font-bold text-sm uppercase tracking-widest">
-        Quick Add
-    </span>
-</button>
-
-{/* History Modal */ }
-{
-    viewingHistory && (
-        <HistoryModal
-            type={viewingHistory}
-            data={viewingHistory === 'weekly' ? stats.weeklyHistory : stats.monthlyHistory}
-            onClose={() => setViewingHistory(null)}
-            darkMode={darkMode}
-            glassTheme={glassTheme}
-            formatCurrency={formatCurrency}
-        />
-    )
-}
-        </div >
-    );
-};
-
-const StatCard = ({ title, amount, icon, trend, glassTheme, delay, darkMode, gradient, onClick, interactive }) => {
-    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
-
-    return (
-        <div
-            onClick={onClick}
-            className={`relative overflow-hidden p-6 rounded-3xl ${glassTheme.card} pop-in group transition-all duration-500 ${interactive
-                ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-[1.02]'
-                : 'hover:-translate-y-1'
-                }`}
-            style={{ animationDelay: delay }}
-        >
-            {/* Glossy Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-            {/* Background Gradient Splash */}
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-700`} />
-
-            <div className="flex justify-between items-start mb-6 relative z-10 text-slate-100">
-                <div className={`p-3.5 rounded-2xl shadow-xl transition-all duration-500 ${darkMode ? 'bg-slate-800 border border-slate-700/50' : 'bg-white border border-slate-100'
-                    } group-hover:rotate-[15deg] group-hover:scale-110 group-hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]`}>
-                    {icon}
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full backdrop-blur-md ${darkMode ? 'bg-white/10 text-blue-400' : 'bg-blue-50 text-blue-600'
-                        } group-hover:scale-110 transition-transform`}>
-                        {trend}
+                    <Plus size={window.innerWidth < 768 ? 24 : 28} className="transition-transform duration-500 group-hover:rotate-90" />
+                    <span className="hidden md:inline-block max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 font-bold text-sm uppercase tracking-widest">
+                        Quick Add
                     </span>
-                    {interactive && (
-                        <span className={`text-[9px] font-bold uppercase tracking-wider opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all translate-y-0 md:translate-y-1 md:group-hover:translate-y-0 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                            Click to View History
-                        </span>
-                    )}
-                </div>
-            </div>
-            <div className="relative z-10">
-                <h3 className={`text-xs font-black uppercase tracking-[0.15em] mb-2 ${glassTheme.textMuted}`}>{title}</h3>
-                <p className={`text-5xl font-black tracking-tighter tabular-nums bg-clip-text text-transparent transition-all duration-500 ${darkMode
-                    ? 'bg-gradient-to-br from-white via-white to-slate-500 group-hover:to-blue-400'
-                    : 'bg-gradient-to-br from-slate-950 to-slate-600 group-hover:to-blue-600'}`}>
-                    {formatter.format(amount)}
-                </p>
-            </div>
-        </div>
-    );
+                </button>
+
+                {/* History Modal */}
+                {
+                    viewingHistory && (
+                        <HistoryModal
+                            type={viewingHistory}
+                            data={viewingHistory === 'weekly' ? stats.weeklyHistory : stats.monthlyHistory}
+                            onClose={() => setViewingHistory(null)}
+                            darkMode={darkMode}
+                            glassTheme={glassTheme}
+                            formatCurrency={formatCurrency}
+                        />
+                    )
+                }
+            </div >
+            );
 };
 
-const HistoryModal = ({ type, data, onClose, darkMode, glassTheme, formatCurrency }) => {
-    const [selectedPeriod, setSelectedPeriod] = useState(data[0] || null);
+            const StatCard = ({title, amount, icon, trend, glassTheme, delay, darkMode, gradient, onClick, interactive}) => {
+    const formatter = new Intl.NumberFormat('en-IN', {style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className={`${glassTheme.card} rounded-[2rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col pop-in`}>
-                {/* Header */}
-                <div className={`p-8 border-b flex justify-between items-center ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                    <div>
-                        <h2 className={`text-3xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)} <span className="text-blue-500">History</span>
-                        </h2>
-                        <p className={`text-sm font-medium mt-1 ${glassTheme.textMuted}`}>Deep dive into your past spending patterns.</p>
+            return (
+            <div
+                onClick={onClick}
+                className={`relative overflow-hidden p-6 rounded-3xl ${glassTheme.card} pop-in group transition-all duration-500 ${interactive
+                    ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:scale-[1.02]'
+                    : 'hover:-translate-y-1'
+                    }`}
+                style={{ animationDelay: delay }}
+            >
+                {/* Glossy Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                {/* Background Gradient Splash */}
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-700`} />
+
+                <div className="flex justify-between items-start mb-6 relative z-10 text-slate-100">
+                    <div className={`p-3.5 rounded-2xl shadow-xl transition-all duration-500 ${darkMode ? 'bg-slate-800 border border-slate-700/50' : 'bg-white border border-slate-100'
+                        } group-hover:rotate-[15deg] group-hover:scale-110 group-hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]`}>
+                        {icon}
                     </div>
-                    <button onClick={onClose} className={`p-3 rounded-full hover:bg-black/10 transition-all ${glassTheme.textMuted} hover:text-white`}>✕</button>
-                </div>
-                <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                    {/* Period Sidebar */}
-                    <div className={`w-full md:w-1/3 border-b md:border-b-0 md:border-r overflow-y-auto custom-scrollbar h-40 md:h-auto ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                        <div className="p-3 md:p-4 md:space-y-2 flex md:block overflow-x-auto md:overflow-x-visible gap-2 md:gap-0">
-                            {data.map((period) => (
-                                <button
-                                    key={period.period}
-                                    onClick={() => setSelectedPeriod(period)}
-                                    className={`shrink-0 md:shrink md:w-full p-4 md:p-5 rounded-2xl text-left transition-all relative overflow-hidden group ${selectedPeriod?.period === period.period
-                                        ? (darkMode ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-100')
-                                        : (darkMode ? 'hover:bg-white/5 border border-transparent' : 'hover:bg-slate-50 border border-transparent')
-                                        }`}
-                                >
-                                    <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-center">
-                                        <div>
-                                            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60 mb-0.5 md:mb-1">{period.period}</p>
-                                            <p className="font-bold text-xs md:text-sm whitespace-nowrap">{period.label}</p>
-                                        </div>
-                                        <p className={`font-black tracking-tighter mt-1 md:mt-0 ${selectedPeriod?.period === period.period ? 'text-blue-500' : (darkMode ? 'text-white' : 'text-slate-900')}`}>
-                                            {formatCurrency(period.total)}
-                                        </p>
-                                    </div>
-                                    {selectedPeriod?.period === period.period && (
-                                        <div className="absolute left-0 right-0 bottom-0 md:top-0 md:right-auto md:w-1 md:h-auto h-1 bg-blue-500" />
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Transaction List */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
-                        {selectedPeriod ? (
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-end pb-6 border-b border-dashed border-slate-700/50">
-                                    <div>
-                                        <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Overview</p>
-                                        <h3 className={`text-4xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                                            {formatCurrency(selectedPeriod.total)}
-                                        </h3>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Volume</p>
-                                        <p className={`text-xl font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>{selectedPeriod.count} Entries</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3 mt-8">
-                                    {selectedPeriod.items.map((item, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`p-4 rounded-2xl flex items-center justify-between border transition-all ${darkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-100'
-                                                } hover:border-blue-500/30 hover:translate-x-1`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600 shadow-sm'
-                                                    }`}>
-                                                    {item.category}
-                                                </div>
-                                                <div>
-                                                    <p className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{item.description}</p>
-                                                    <p className={`text-[10px] font-medium opacity-50 ${darkMode ? 'text-slate-300' : 'text-slate-500'}`}>{item.date}</p>
-                                                </div>
-                                            </div>
-                                            <p className={`font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-950'}`}>{formatCurrency(item.amount)}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="h-full flex items-center justify-center opacity-30">
-                                <p className="text-xl font-black uppercase tracking-widest">Select a period</p>
-                            </div>
+                    <div className="flex flex-col items-end gap-1">
+                        <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full backdrop-blur-md ${darkMode ? 'bg-white/10 text-blue-400' : 'bg-blue-50 text-blue-600'
+                            } group-hover:scale-110 transition-transform`}>
+                            {trend}
+                        </span>
+                        {interactive && (
+                            <span className={`text-[9px] font-bold uppercase tracking-wider opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all translate-y-0 md:translate-y-1 md:group-hover:translate-y-0 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                                Click to View History
+                            </span>
                         )}
                     </div>
                 </div>
+                <div className="relative z-10">
+                    <h3 className={`text-xs font-black uppercase tracking-[0.15em] mb-2 ${glassTheme.textMuted}`}>{title}</h3>
+                    <p className={`text-5xl font-black tracking-tighter tabular-nums bg-clip-text text-transparent transition-all duration-500 ${darkMode
+                        ? 'bg-gradient-to-br from-white via-white to-slate-500 group-hover:to-blue-400'
+                        : 'bg-gradient-to-br from-slate-950 to-slate-600 group-hover:to-blue-600'}`}>
+                        {formatter.format(amount)}
+                    </p>
+                </div>
             </div>
-        </div>
-    );
+            );
+};
+
+            const HistoryModal = ({type, data, onClose, darkMode, glassTheme, formatCurrency}) => {
+    const [selectedPeriod, setSelectedPeriod] = useState(data[0] || null);
+
+            return (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                <div className={`${glassTheme.card} rounded-[2rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col pop-in`}>
+                    {/* Header */}
+                    <div className={`p-8 border-b flex justify-between items-center ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                        <div>
+                            <h2 className={`text-3xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)} <span className="text-blue-500">History</span>
+                            </h2>
+                            <p className={`text-sm font-medium mt-1 ${glassTheme.textMuted}`}>Deep dive into your past spending patterns.</p>
+                        </div>
+                        <button onClick={onClose} className={`p-3 rounded-full hover:bg-black/10 transition-all ${glassTheme.textMuted} hover:text-white`}>✕</button>
+                    </div>
+                    <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+                        {/* Period Sidebar */}
+                        <div className={`w-full md:w-1/3 border-b md:border-b-0 md:border-r overflow-y-auto custom-scrollbar h-40 md:h-auto ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                            <div className="p-3 md:p-4 md:space-y-2 flex md:block overflow-x-auto md:overflow-x-visible gap-2 md:gap-0">
+                                {data.map((period) => (
+                                    <button
+                                        key={period.period}
+                                        onClick={() => setSelectedPeriod(period)}
+                                        className={`shrink-0 md:shrink md:w-full p-4 md:p-5 rounded-2xl text-left transition-all relative overflow-hidden group ${selectedPeriod?.period === period.period
+                                            ? (darkMode ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-100')
+                                            : (darkMode ? 'hover:bg-white/5 border border-transparent' : 'hover:bg-slate-50 border border-transparent')
+                                            }`}
+                                    >
+                                        <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-center">
+                                            <div>
+                                                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60 mb-0.5 md:mb-1">{period.period}</p>
+                                                <p className="font-bold text-xs md:text-sm whitespace-nowrap">{period.label}</p>
+                                            </div>
+                                            <p className={`font-black tracking-tighter mt-1 md:mt-0 ${selectedPeriod?.period === period.period ? 'text-blue-500' : (darkMode ? 'text-white' : 'text-slate-900')}`}>
+                                                {formatCurrency(period.total)}
+                                            </p>
+                                        </div>
+                                        {selectedPeriod?.period === period.period && (
+                                            <div className="absolute left-0 right-0 bottom-0 md:top-0 md:right-auto md:w-1 md:h-auto h-1 bg-blue-500" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Transaction List */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
+                            {selectedPeriod ? (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-end pb-6 border-b border-dashed border-slate-700/50">
+                                        <div>
+                                            <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Overview</p>
+                                            <h3 className={`text-4xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                                                {formatCurrency(selectedPeriod.total)}
+                                            </h3>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Volume</p>
+                                            <p className={`text-xl font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>{selectedPeriod.count} Entries</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 mt-8">
+                                        {selectedPeriod.items.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`p-4 rounded-2xl flex items-center justify-between border transition-all ${darkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-100'
+                                                    } hover:border-blue-500/30 hover:translate-x-1`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`p-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${darkMode ? 'bg-slate-800 text-slate-300' : 'bg-white text-slate-600 shadow-sm'
+                                                        }`}>
+                                                        {item.category}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{item.description}</p>
+                                                        <p className={`text-[10px] font-medium opacity-50 ${darkMode ? 'text-slate-300' : 'text-slate-500'}`}>{item.date}</p>
+                                                    </div>
+                                                </div>
+                                                <p className={`font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-950'}`}>{formatCurrency(item.amount)}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="h-full flex items-center justify-center opacity-30">
+                                    <p className="text-xl font-black uppercase tracking-widest">Select a period</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            );
 };
 
 
 
-const SimpleBarChart = ({ data, darkMode, selectedDate, onBarClick }) => {
-    // Debugging: Check if data is actually zero
-    console.log("Chart Data:", data);
+            const SimpleBarChart = ({data, darkMode, selectedDate, onBarClick}) => {
+                // Debugging: Check if data is actually zero
+                console.log("Chart Data:", data);
 
     const maxValue = Math.max(...data.map(d => d.value)) || 100;
 
-    return (
-        <>
-            {data.map((item, index) => {
-                // Improved Scaling: Ensure small values are distinct from zero
-                let heightPercent = 4; // Base height for zero values (subtle track)
+            return (
+            <>
+                {data.map((item, index) => {
+                    // Improved Scaling: Ensure small values are distinct from zero
+                    let heightPercent = 4; // Base height for zero values (subtle track)
 
-                if (item.value > 0) {
-                    // Non-zero values start at 15% height and scale up to 90%
-                    // This guarantees that even the smallest expense is clearly "taller" than the empty track
-                    const percentage = (item.value / maxValue);
-                    heightPercent = 15 + (percentage * 75);
-                }
+                    if (item.value > 0) {
+                        // Non-zero values start at 15% height and scale up to 90%
+                        // This guarantees that even the smallest expense is clearly "taller" than the empty track
+                        const percentage = (item.value / maxValue);
+                        heightPercent = 15 + (percentage * 75);
+                    }
 
-                const isSelected = selectedDate === item.fullDate;
-                const isAnySelected = selectedDate !== null;
+                    const isSelected = selectedDate === item.fullDate;
+                    const isAnySelected = selectedDate !== null;
 
-                return (
-                    <div
-                        key={index}
-                        onClick={() => onBarClick(item.fullDate)}
-                        className="flex flex-col items-center justify-end h-full w-full group relative cursor-pointer"
-                    >
-                        {/* Redesigned Premium Tooltip */}
-                        <div className={`absolute bottom-full mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-30 pointer-events-none`}>
-                            <div className={`backdrop-blur-md border rounded-2xl p-3 shadow-2xl flex flex-col items-center min-w-[100px] ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
-                                }`}>
-                                <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Spending</span>
-                                <span className={`text-sm font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>₹{item.value.toLocaleString()}</span>
-                                <span className={`text-[9px] font-bold mt-1 opacity-60 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.fullDate}</span>
-                            </div>
-                            <div className={`mx-auto w-3 h-3 rotate-45 -mt-1.5 border-r border-b ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
-                                }`}></div>
-                        </div>
-
-                        {/* The Bar with Premium Gradient and Shadow */}
+                    return (
                         <div
-                            style={{ height: `${heightPercent}%` }}
-                            className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[42px] rounded-t-xl md:rounded-t-2xl transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) relative overflow-hidden ${isAnySelected && !isSelected ? 'opacity-30 scale-95' : 'opacity-100'
-                                } ${item.value > 0
-                                    ? (isSelected
-                                        ? 'bg-gradient-to-t from-blue-600 via-indigo-500 to-purple-400 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
-                                        : 'bg-gradient-to-t from-blue-600/80 to-blue-400/80 group-hover:from-blue-600 group-hover:to-indigo-400'
-                                    )
-                                    : (darkMode ? 'bg-slate-800/40' : 'bg-slate-200/50')
-                                }`}
+                            key={index}
+                            onClick={() => onBarClick(item.fullDate)}
+                            className="flex flex-col items-center justify-end h-full w-full group relative cursor-pointer"
                         >
-                            {/* Inner Glass Highlight */}
-                            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                            {/* Redesigned Premium Tooltip */}
+                            <div className={`absolute bottom-full mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-30 pointer-events-none`}>
+                                <div className={`backdrop-blur-md border rounded-2xl p-3 shadow-2xl flex flex-col items-center min-w-[100px] ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
+                                    }`}>
+                                    <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Spending</span>
+                                    <span className={`text-sm font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>₹{item.value.toLocaleString()}</span>
+                                    <span className={`text-[9px] font-bold mt-1 opacity-60 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.fullDate}</span>
+                                </div>
+                                <div className={`mx-auto w-3 h-3 rotate-45 -mt-1.5 border-r border-b ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
+                                    }`}></div>
+                            </div>
+
+                            {/* The Bar with Premium Gradient and Shadow */}
+                            <div
+                                style={{ height: `${heightPercent}%` }}
+                                className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[42px] rounded-t-xl md:rounded-t-2xl transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) relative overflow-hidden ${isAnySelected && !isSelected ? 'opacity-30 scale-95' : 'opacity-100'
+                                    } ${item.value > 0
+                                        ? (isSelected
+                                            ? 'bg-gradient-to-t from-blue-600 via-indigo-500 to-purple-400 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
+                                            : 'bg-gradient-to-t from-blue-600/80 to-blue-400/80 group-hover:from-blue-600 group-hover:to-indigo-400'
+                                        )
+                                        : (darkMode ? 'bg-slate-800/40' : 'bg-slate-200/50')
+                                    }`}
+                            >
+                                {/* Inner Glass Highlight */}
+                                <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                            </div>
+
+                            <span className={`text-[8px] md:text-[10px] uppercase font-black mt-4 tracking-tighter md:tracking-[0.15em] transition-all duration-300 ${isSelected
+                                ? (darkMode ? 'text-blue-400' : 'text-blue-600')
+                                : (darkMode ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600')
+                                }`}>
+                                {item.day}
+                            </span>
+
+                            {/* Active Indicator Under Text */}
+                            {isSelected && (
+                                <div className="absolute -bottom-2 w-1 h-1 rounded-full bg-blue-500 animate-ping" />
+                            )}
                         </div>
-
-                        <span className={`text-[8px] md:text-[10px] uppercase font-black mt-4 tracking-tighter md:tracking-[0.15em] transition-all duration-300 ${isSelected
-                            ? (darkMode ? 'text-blue-400' : 'text-blue-600')
-                            : (darkMode ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600')
-                            }`}>
-                            {item.day}
-                        </span>
-
-                        {/* Active Indicator Under Text */}
-                        {isSelected && (
-                            <div className="absolute -bottom-2 w-1 h-1 rounded-full bg-blue-500 animate-ping" />
-                        )}
-                    </div>
-                );
-            })}
-        </>
-    );
+                    );
+                })}
+            </>
+            );
 };
 
-const SimplePieChart = ({ data, darkMode, onSliceClick, selectedCategory }) => {
-    let cumulativePercent = 0;
+            const SimplePieChart = ({data, darkMode, onSliceClick, selectedCategory}) => {
+                let cumulativePercent = 0;
     const total = data.reduce((acc, curr) => acc + curr.value, 0);
 
     const getCoordinatesForPercent = (percent) => {
         const x = Math.cos(2 * Math.PI * percent);
-        const y = Math.sin(2 * Math.PI * percent);
-        return [x, y];
+            const y = Math.sin(2 * Math.PI * percent);
+            return [x, y];
     };
 
-    return (
-        <svg viewBox="-1 -1 2 2" className="transform -rotate-90 w-full h-full overflow-visible outline-none">
-            {data.map((slice, i) => {
-                const startPercent = cumulativePercent;
-                const slicePercent = slice.value / total;
-                cumulativePercent += slicePercent;
-                const endPercent = cumulativePercent;
+            return (
+            <svg viewBox="-1 -1 2 2" className="transform -rotate-90 w-full h-full overflow-visible outline-none">
+                {data.map((slice, i) => {
+                    const startPercent = cumulativePercent;
+                    const slicePercent = slice.value / total;
+                    cumulativePercent += slicePercent;
+                    const endPercent = cumulativePercent;
 
-                const [startX, startY] = getCoordinatesForPercent(startPercent);
-                const [endX, endY] = getCoordinatesForPercent(endPercent);
+                    const [startX, startY] = getCoordinatesForPercent(startPercent);
+                    const [endX, endY] = getCoordinatesForPercent(endPercent);
 
-                const largeArcFlag = slicePercent > 0.5 ? 1 : 0;
+                    const largeArcFlag = slicePercent > 0.5 ? 1 : 0;
 
-                if (slicePercent === 1) return <circle key={i} cx="0" cy="0" r="1" fill={slice.color} />;
+                    if (slicePercent === 1) return <circle key={i} cx="0" cy="0" r="1" fill={slice.color} />;
 
-                const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
-                const isSelected = selectedCategory === slice.name;
-                const isAnySelected = selectedCategory !== null;
+                    const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`;
+                    const isSelected = selectedCategory === slice.name;
+                    const isAnySelected = selectedCategory !== null;
 
-                return (
-                    <path
-                        key={i}
-                        d={pathData}
-                        fill={slice.color}
-                        onClick={() => onSliceClick(slice.name)}
-                        className={`transition-all duration-300 ease-out cursor-pointer ${isAnySelected && !isSelected ? 'opacity-30' : 'opacity-100'} ${isSelected ? 'brightness-125' : 'hover:opacity-80'}`}
-                    />
-                );
-            })}
-            <circle cx="0" cy="0" r="0.75" fill={darkMode ? "#1e293b" : "#f1f5f9"} className="transition-colors duration-500 pointer-events-none" style={{ fillOpacity: 0.1 }} />
-            <circle cx="0" cy="0" r="0.7" fill="transparent" className="pointer-events-none" />
-        </svg>
-    );
+                    return (
+                        <path
+                            key={i}
+                            d={pathData}
+                            fill={slice.color}
+                            onClick={() => onSliceClick(slice.name)}
+                            className={`transition-all duration-300 ease-out cursor-pointer ${isAnySelected && !isSelected ? 'opacity-30' : 'opacity-100'} ${isSelected ? 'brightness-125' : 'hover:opacity-80'}`}
+                        />
+                    );
+                })}
+                <circle cx="0" cy="0" r="0.75" fill={darkMode ? "#1e293b" : "#f1f5f9"} className="transition-colors duration-500 pointer-events-none" style={{ fillOpacity: 0.1 }} />
+                <circle cx="0" cy="0" r="0.7" fill="transparent" className="pointer-events-none" />
+            </svg>
+            );
 };
 
-export default ExpenseTracker;
+            export default ExpenseTracker;
