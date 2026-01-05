@@ -356,19 +356,60 @@ const ExpenseTracker = () => {
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (Array.isArray(importedData)) setExpenses(importedData);
-                else alert("Invalid file format.");
+                if (!Array.isArray(importedData)) {
+                    alert("Invalid file format. Expected a JSON array.");
+                    return;
+                }
+
+                if (!user) {
+                    alert("You must be logged in to import data.");
+                    return;
+                }
+
+                if (!confirm(`Importing ${importedData.length} records. This will be added to your account. Continue?`)) {
+                    event.target.value = null; // Reset input
+                    return;
+                }
+
+                setLoadingData(true);
+
+                // Sanitize and prepare data for insertion
+                const recordsToInsert = importedData.map(item => ({
+                    user_id: user.id, // FORCE current user ownership
+                    date: item.date || formatToLocalDate(new Date()),
+                    category: item.category || 'Other',
+                    amount: parseFloat(item.amount) || 0,
+                    description: item.description || 'Imported Expense'
+                    // We explicitly exclude 'id' and 'created_at' to let Supabase generate them
+                }));
+
+                const { data, error } = await supabase
+                    .from('expenses')
+                    .insert(recordsToInsert)
+                    .select(); // Select back to get the new IDs
+
+                if (error) throw error;
+
+                // Update local state by appending new valid records
+                if (data) {
+                    setExpenses(prev => [...data, ...prev]);
+                    alert(`Successfully imported ${data.length} expenses!`);
+                }
+
             } catch (error) {
-                console.error("Error parsing file:", error);
-                alert("Error parsing file.");
+                console.error("Error importing file:", error);
+                alert("Failed to import data. Please check the file format.");
+            } finally {
+                setLoadingData(false);
+                event.target.value = null; // Reset input allows same file selection again
             }
         };
         reader.readAsText(file);
-        event.target.value = null;
     };
 
     // --- Glassmorphism Theme Classes ---
