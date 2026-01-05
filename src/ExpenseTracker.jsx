@@ -1282,8 +1282,6 @@ const ExpenseTracker = () => {
             );
 };
 
-
-
             const SimpleBarChart = ({data, darkMode, selectedDate, onBarClick}) => {
                 // Debugging: Check if data is actually zero
                 console.log("Chart Data:", data);
