@@ -1236,66 +1236,67 @@ const SimpleBarChart = ({ data, darkMode, selectedDate, onBarClick }) => {
 
     return (
         <>
+            {data.map((item, index) => {
                 // Improved Scaling: Ensure small values are distinct from zero
-            let heightPercent = 4; // Base height for zero values (subtle track)
-                
+                let heightPercent = 4; // Base height for zero values (subtle track)
+
                 if (item.value > 0) {
-                   // Non-zero values start at 15% height and scale up to 90%
-                   // This guarantees that even the smallest expense is clearly "taller" than the empty track
-                   const percentage = (item.value / maxValue);
-            heightPercent = 15 + (percentage * 75);
+                    // Non-zero values start at 15% height and scale up to 90%
+                    // This guarantees that even the smallest expense is clearly "taller" than the empty track
+                    const percentage = (item.value / maxValue);
+                    heightPercent = 15 + (percentage * 75);
                 }
 
-            const isSelected = selectedDate === item.fullDate;
-            const isAnySelected = selectedDate !== null;
+                const isSelected = selectedDate === item.fullDate;
+                const isAnySelected = selectedDate !== null;
 
-            return (
-            <div
-                key={index}
-                onClick={() => onBarClick(item.fullDate)}
-                className="flex flex-col items-center justify-end h-full w-full group relative cursor-pointer"
-            >
-                {/* Redesigned Premium Tooltip */}
-                <div className={`absolute bottom-full mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-30 pointer-events-none`}>
-                    <div className={`backdrop-blur-md border rounded-2xl p-3 shadow-2xl flex flex-col items-center min-w-[100px] ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
-                        }`}>
-                        <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Spending</span>
-                        <span className={`text-sm font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>₹{item.value.toLocaleString()}</span>
-                        <span className={`text-[9px] font-bold mt-1 opacity-60 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.fullDate}</span>
+                return (
+                    <div
+                        key={index}
+                        onClick={() => onBarClick(item.fullDate)}
+                        className="flex flex-col items-center justify-end h-full w-full group relative cursor-pointer"
+                    >
+                        {/* Redesigned Premium Tooltip */}
+                        <div className={`absolute bottom-full mb-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-30 pointer-events-none`}>
+                            <div className={`backdrop-blur-md border rounded-2xl p-3 shadow-2xl flex flex-col items-center min-w-[100px] ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
+                                }`}>
+                                <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Spending</span>
+                                <span className={`text-sm font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>₹{item.value.toLocaleString()}</span>
+                                <span className={`text-[9px] font-bold mt-1 opacity-60 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{item.fullDate}</span>
+                            </div>
+                            <div className={`mx-auto w-3 h-3 rotate-45 -mt-1.5 border-r border-b ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
+                                }`}></div>
+                        </div>
+
+                        {/* The Bar with Premium Gradient and Shadow */}
+                        <div
+                            style={{ height: `${heightPercent}%` }}
+                            className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[42px] rounded-t-xl md:rounded-t-2xl transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) relative overflow-hidden ${isAnySelected && !isSelected ? 'opacity-30 scale-95' : 'opacity-100'
+                                } ${item.value > 0
+                                    ? (isSelected
+                                        ? 'bg-gradient-to-t from-blue-600 via-indigo-500 to-purple-400 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
+                                        : 'bg-gradient-to-t from-blue-600/80 to-blue-400/80 group-hover:from-blue-600 group-hover:to-indigo-400'
+                                    )
+                                    : (darkMode ? 'bg-slate-800/40' : 'bg-slate-200/50')
+                                }`}
+                        >
+                            {/* Inner Glass Highlight */}
+                            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                        </div>
+
+                        <span className={`text-[8px] md:text-[10px] uppercase font-black mt-4 tracking-tighter md:tracking-[0.15em] transition-all duration-300 ${isSelected
+                            ? (darkMode ? 'text-blue-400' : 'text-blue-600')
+                            : (darkMode ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600')
+                            }`}>
+                            {item.day}
+                        </span>
+
+                        {/* Active Indicator Under Text */}
+                        {isSelected && (
+                            <div className="absolute -bottom-2 w-1 h-1 rounded-full bg-blue-500 animate-ping" />
+                        )}
                     </div>
-                    <div className={`mx-auto w-3 h-3 rotate-45 -mt-1.5 border-r border-b ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'
-                        }`}></div>
-                </div>
-
-                {/* The Bar with Premium Gradient and Shadow */}
-                <div
-                    style={{ height: `${heightPercent}%` }}
-                    className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[42px] rounded-t-xl md:rounded-t-2xl transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) relative overflow-hidden ${isAnySelected && !isSelected ? 'opacity-30 scale-95' : 'opacity-100'
-                        } ${item.value > 0
-                            ? (isSelected
-                                ? 'bg-gradient-to-t from-blue-600 via-indigo-500 to-purple-400 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
-                                : 'bg-gradient-to-t from-blue-600/80 to-blue-400/80 group-hover:from-blue-600 group-hover:to-indigo-400'
-                            )
-                            : (darkMode ? 'bg-slate-800/40' : 'bg-slate-200/50')
-                        }`}
-                >
-                    {/* Inner Glass Highlight */}
-                    <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-                </div>
-
-                <span className={`text-[8px] md:text-[10px] uppercase font-black mt-4 tracking-tighter md:tracking-[0.15em] transition-all duration-300 ${isSelected
-                    ? (darkMode ? 'text-blue-400' : 'text-blue-600')
-                    : (darkMode ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600')
-                    }`}>
-                    {item.day}
-                </span>
-
-                {/* Active Indicator Under Text */}
-                {isSelected && (
-                    <div className="absolute -bottom-2 w-1 h-1 rounded-full bg-blue-500 animate-ping" />
-                )}
-            </div>
-            );
+                );
             })}
         </>
     );
