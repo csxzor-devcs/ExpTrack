@@ -40,11 +40,17 @@ export const AuthProvider = ({ children }) => {
         return supabase.auth.signOut();
     };
 
+    const loginAsGuest = () => {
+        setUser({ id: 'guest', email: 'guest@local', isGuest: true });
+        setLoading(false);
+    };
+
     const value = {
         user,
         signUp,
         signIn,
         signOut,
+        loginAsGuest,
         loading
     };
 

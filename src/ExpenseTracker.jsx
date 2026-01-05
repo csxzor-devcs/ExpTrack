@@ -55,17 +55,23 @@ const ExpenseTracker = () => {
         const fetchExpenses = async () => {
             setLoadingData(true);
             try {
-                const { data, error } = await supabase
-                    .from('expenses')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('date', { ascending: false });
+                if (user.isGuest) {
+                    // Guest Mode: Load from LocalStorage
+                    const localData = JSON.parse(localStorage.getItem('guest_expenses') || '[]');
+                    setExpenses(localData);
+                } else {
+                    // Authenticated Mode: Load from Supabase
+                    const { data, error } = await supabase
+                        .from('expenses')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .order('date', { ascending: false });
 
-                if (error) throw error;
-                setExpenses(data || []);
+                    if (error) throw error;
+                    setExpenses(data || []);
+                }
             } catch (error) {
                 console.error('Error fetching expenses:', error);
-                // Fallback to local state if needed? For now just log.
             } finally {
                 setLoadingData(false);
             }
@@ -243,36 +249,66 @@ const ExpenseTracker = () => {
             description: newExpense.description
         };
 
-        try {
-            if (editingExpense) {
-                const { error } = await supabase
-                    .from('expenses')
-                    .update(expenseData)
-                    .eq('id', editingExpense.id)
-                    .eq('user_id', user.id);
+        // --- GUEST MODE LOGIC ---
+        if (user.isGuest) {
+            try {
+                const localData = JSON.parse(localStorage.getItem('guest_expenses') || '[]');
+                let updatedData;
 
-                if (error) throw error;
-
-                setExpenses(expenses.map(exp =>
-                    exp.id === editingExpense.id
-                        ? { ...exp, ...expenseData }
-                        : exp
-                ));
-                setEditingExpense(null);
-            } else {
-                const { data, error } = await supabase
-                    .from('expenses')
-                    .insert([expenseData])
-                    .select();
-
-                if (error) throw error;
-                if (data) {
-                    setExpenses([data[0], ...expenses]);
+                if (editingExpense) {
+                    updatedData = localData.map(exp =>
+                        exp.id === editingExpense.id
+                            ? { ...exp, ...expenseData, id: exp.id } // Keep original ID
+                            : exp
+                    );
+                    setExpenses(updatedData);
+                    localStorage.setItem('guest_expenses', JSON.stringify(updatedData));
+                    setEditingExpense(null);
+                } else {
+                    const newId = Date.now(); // Simple ID generation
+                    const newRecord = { ...expenseData, id: newId };
+                    updatedData = [newRecord, ...localData];
+                    setExpenses(updatedData);
+                    localStorage.setItem('guest_expenses', JSON.stringify(updatedData));
                 }
+            } catch (error) {
+                console.error("Error saving guest expense:", error);
+                alert("Failed to save to local storage.");
             }
-        } catch (error) {
-            console.error("Error saving expense:", error);
-            alert("Failed to save expense. Please try again.");
+        }
+        // --- AUTHENTICATED MODE LOGIC ---
+        else {
+            try {
+                if (editingExpense) {
+                    const { error } = await supabase
+                        .from('expenses')
+                        .update(expenseData)
+                        .eq('id', editingExpense.id)
+                        .eq('user_id', user.id);
+
+                    if (error) throw error;
+
+                    setExpenses(expenses.map(exp =>
+                        exp.id === editingExpense.id
+                            ? { ...exp, ...expenseData }
+                            : exp
+                    ));
+                    setEditingExpense(null);
+                } else {
+                    const { data, error } = await supabase
+                        .from('expenses')
+                        .insert([expenseData])
+                        .select();
+
+                    if (error) throw error;
+                    if (data) {
+                        setExpenses([data[0], ...expenses]);
+                    }
+                }
+            } catch (error) {
+                console.error("Error saving expense:", error);
+                alert("Failed to save expense. Please try again.");
+            }
         }
 
         setNewExpense({
@@ -308,6 +344,14 @@ const ExpenseTracker = () => {
 
     const handleDelete = async (id) => {
         if (!confirm("Are you sure you want to delete this expense?")) return;
+
+        if (user.isGuest) {
+            const updatedExpenses = expenses.filter(e => e.id !== id);
+            setExpenses(updatedExpenses);
+            localStorage.setItem('guest_expenses', JSON.stringify(updatedExpenses));
+            return;
+        }
+
         try {
             const { error } = await supabase
                 .from('expenses')
@@ -325,6 +369,14 @@ const ExpenseTracker = () => {
 
     const handleDeleteAccount = async () => {
         if (!confirm("Are you sure you want to delete your account? This action cannot be undone and will delete all your data.")) return;
+
+        if (user.isGuest) {
+            localStorage.removeItem('guest_expenses');
+            setExpenses([]);
+            alert("Local guest data cleared.");
+            signOut(); // Resets user state
+            return;
+        }
 
         const doubleCheck = confirm("Please confirm again. All your expenses will be lost forever. Are you absolutely sure?");
         if (!doubleCheck) return;
@@ -392,27 +444,45 @@ const ExpenseTracker = () => {
 
                 setLoadingData(true);
 
-                // Sanitize and prepare data for insertion
-                const recordsToInsert = importedData.map(item => ({
-                    user_id: user.id, // FORCE current user ownership
-                    date: item.date || formatToLocalDate(new Date()),
-                    category: item.category || 'Other',
-                    amount: parseFloat(item.amount) || 0,
-                    description: item.description || 'Imported Expense'
-                    // We explicitly exclude 'id' and 'created_at' to let Supabase generate them
-                }));
+                // GUEST IMPORT
+                if (user.isGuest) {
+                    const localData = JSON.parse(localStorage.getItem('guest_expenses') || '[]');
 
-                const { data, error } = await supabase
-                    .from('expenses')
-                    .insert(recordsToInsert)
-                    .select(); // Select back to get the new IDs
+                    const newRecords = importedData.map(item => ({
+                        id: Date.now() + Math.random(), // Simple ID gen
+                        user_id: 'guest',
+                        date: item.date || formatToLocalDate(new Date()),
+                        category: item.category || 'Other',
+                        amount: parseFloat(item.amount) || 0,
+                        description: item.description || 'Imported Expense'
+                    }));
 
-                if (error) throw error;
+                    const updatedData = [...newRecords, ...localData];
+                    localStorage.setItem('guest_expenses', JSON.stringify(updatedData));
+                    setExpenses(updatedData);
+                    alert(`Successfully imported ${newRecords.length} expenses locally!`);
+                }
+                // AUTH IMPORT
+                else {
+                    const recordsToInsert = importedData.map(item => ({
+                        user_id: user.id, // FORCE current user ownership
+                        date: item.date || formatToLocalDate(new Date()),
+                        category: item.category || 'Other',
+                        amount: parseFloat(item.amount) || 0,
+                        description: item.description || 'Imported Expense'
+                    }));
 
-                // Update local state by appending new valid records
-                if (data) {
-                    setExpenses(prev => [...data, ...prev]);
-                    alert(`Successfully imported ${data.length} expenses!`);
+                    const { data, error } = await supabase
+                        .from('expenses')
+                        .insert(recordsToInsert)
+                        .select();
+
+                    if (error) throw error;
+
+                    if (data) {
+                        setExpenses(prev => [...data, ...prev]);
+                        alert(`Successfully imported ${data.length} expenses!`);
+                    }
                 }
 
             } catch (error) {

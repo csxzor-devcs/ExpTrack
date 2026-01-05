@@ -8,7 +8,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { signIn } = useAuth();
+    const { signIn, loginAsGuest } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -105,11 +105,23 @@ const Login = () => {
 
                 <div className="mt-8 text-center">
                     <p className="text-slate-400 text-sm">
-                        Don't have an account?{' '}
                         <Link to="/signup" className="text-blue-400 font-bold hover:text-blue-300 transition-colors">
                             Create one
                         </Link>
                     </p>
+
+                    <div className="mt-6 pt-6 border-t border-slate-700/50">
+                        <button
+                            onClick={() => {
+                                loginAsGuest();
+                                navigate('/');
+                            }}
+                            type="button"
+                            className="text-slate-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+                        >
+                            Skip & Continue Locally
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
