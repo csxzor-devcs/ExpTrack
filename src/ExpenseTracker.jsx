@@ -562,6 +562,13 @@ const ExpenseTracker = () => {
                             />
                         </div>
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setIsFormOpen(true)}
+                                className={`hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${glassTheme.buttonPri}`}
+                            >
+                                <Plus size={16} strokeWidth={3} />
+                                Add Expense
+                            </button>
                             {(selectedCategory || selectedDate) && (
                                 <button
                                     onClick={() => { setSelectedCategory(null); setSelectedDate(null); }}
@@ -790,6 +797,18 @@ const ExpenseTracker = () => {
                     </div>
                 </div>
             )}
+
+            {/* Floating Action Button (FAB) for Quick Add */}
+            <button
+                onClick={() => setIsFormOpen(true)}
+                className={`fixed bottom-8 right-8 z-40 p-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-110 active:scale-90 flex items-center justify-center group ${glassTheme.buttonPri}`}
+                title="Quick Add Expense"
+            >
+                <Plus size={28} className="transition-transform duration-500 group-hover:rotate-90" />
+                <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 font-bold text-sm uppercase tracking-widest">
+                    Quick Add
+                </span>
+            </button>
 
             {/* History Modal */}
             {viewingHistory && (
