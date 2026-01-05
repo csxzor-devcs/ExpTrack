@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2, LogOut, Loader2, UserX } from 'lucide-react';
+import { Plus, Trash2, Calendar, TrendingUp, PieChart as PieChartIcon, BarChart3, Search, FileText, ArrowUpRight, Download, Upload, Moon, Sun, Utensils, Car, Home, Zap, Film, HeartPulse, ShoppingBag, Layers, ChevronRight, Edit2, LogOut, Loader2, UserX, User } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabaseClient';
 
@@ -37,6 +37,7 @@ const ExpenseTracker = () => {
     const [selectedDate, setSelectedDate] = useState(null);
     const [viewingHistory, setViewingHistory] = useState(null); // 'weekly' or 'monthly'
     const [editingExpense, setEditingExpense] = useState(null);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const fileInputRef = useRef(null);
 
     const [newExpense, setNewExpense] = useState({
@@ -473,21 +474,43 @@ const ExpenseTracker = () => {
                             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
 
-                        <button
-                            onClick={handleDeleteAccount}
-                            className={`${glassTheme.buttonSec} hover:text-red-500 active:text-red-600 border-red-200/50`}
-                            title="Delete Account"
-                        >
-                            <UserX size={20} className={darkMode ? 'text-red-400' : 'text-red-500'} />
-                        </button>
+                        {/* Profile Menu Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                className={glassTheme.buttonSec}
+                                title="Profile"
+                            >
+                                <User size={20} />
+                            </button>
 
-                        <button
-                            onClick={() => signOut()}
-                            className={glassTheme.buttonSec}
-                            title="Sign Out"
-                        >
-                            <LogOut size={20} />
-                        </button>
+                            {isProfileMenuOpen && (
+                                <div className={`absolute right-0 mt-3 w-48 rounded-2xl shadow-xl border backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right ${darkMode ? 'bg-[#0c0e1a]/90 border-slate-700/50' : 'bg-white/90 border-slate-200/50'}`}>
+                                    <div className="p-1">
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileMenuOpen(false);
+                                                handleDeleteAccount();
+                                            }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium transition-all ${darkMode ? 'text-rose-400 hover:bg-white/5' : 'text-rose-500 hover:bg-slate-100'}`}
+                                        >
+                                            <UserX size={16} />
+                                            Delete Account
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileMenuOpen(false);
+                                                signOut();
+                                            }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium transition-all ${darkMode ? 'text-slate-300 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                                        >
+                                            <LogOut size={16} />
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         <button onClick={handleExport} className={`${glassTheme.buttonSec} flex items-center gap-2`} title="Export Data">
                             <Download size={20} />
