@@ -39,6 +39,7 @@ const ExpenseTracker = () => {
     const [editingExpense, setEditingExpense] = useState(null);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const fileInputRef = useRef(null);
+    const menuRef = useRef(null); // Ref for the profile menu container
 
     const [newExpense, setNewExpense] = useState({
         date: formatToLocalDate(new Date()),
@@ -82,6 +83,19 @@ const ExpenseTracker = () => {
             document.documentElement.classList.remove('dark');
         }
     }, [darkMode]);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // --- Helpers & Config ---
     const categories = ['Food', 'Transport', 'Housing', 'Utilities', 'Entertainment', 'Health', 'Shopping', 'Other'];
@@ -505,7 +519,7 @@ const ExpenseTracker = () => {
                         <p className={`${glassTheme.textMuted} mt-2 font-medium text-lg ml-1`}>Your financial clarity, reimagined.</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
                         {/* Theme Toggle */}
                         <button
                             onClick={() => setDarkMode(!darkMode)}
@@ -527,16 +541,16 @@ const ExpenseTracker = () => {
 
                         <button
                             onClick={() => setIsFormOpen(true)}
-                            className={`${glassTheme.buttonPri} flex items-center gap-2 justify-center ml-2 mr-2`}
+                            className={`${glassTheme.buttonPri} flex-1 sm:flex-none flex items-center gap-2 justify-center ml-0 sm:ml-2 mr-0 sm:mr-2 order-last sm:order-none min-w-[120px]`}
                         >
                             <Plus size={22} strokeWidth={3} />
-                            Add New
+                            <span className="whitespace-nowrap">Add New</span>
                         </button>
 
-                        <div className={`h-8 w-[1px] mx-1 ${darkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                        <div className={`hidden sm:block h-8 w-[1px] mx-1 ${darkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
 
                         {/* Profile Menu Dropdown */}
-                        <div className="relative">
+                        <div className="relative" ref={menuRef}>
                             <button
                                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                                 className={`${glassTheme.buttonSec} ${isProfileMenuOpen ? (darkMode ? 'bg-slate-700/60 text-white' : 'bg-white text-blue-600 border-blue-200') : ''}`}
