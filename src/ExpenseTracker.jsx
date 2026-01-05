@@ -451,7 +451,7 @@ const ExpenseTracker = () => {
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
 
                 {/* Header */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pop-in" style={{ animationDelay: '0ms' }}>
+                <header className="relative z-50 flex flex-col md:flex-row md:items-center justify-between gap-6 pop-in" style={{ animationDelay: '0ms' }}>
                     <div>
                         <h1 className={`text-4xl font-extrabold tracking-tight flex items-center gap-3 ${darkMode ? 'text-white' : 'text-slate-800'}`}>
                             <div className={`p-3 rounded-2xl text-white shadow-lg bg-gradient-to-br from-blue-500 to-indigo-600 transition-transform hover:scale-110 duration-300`}>
@@ -464,7 +464,7 @@ const ExpenseTracker = () => {
                         <p className={`${glassTheme.textMuted} mt-2 font-medium text-lg ml-1`}>Your financial clarity, reimagined.</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         {/* Theme Toggle */}
                         <button
                             onClick={() => setDarkMode(!darkMode)}
@@ -473,44 +473,6 @@ const ExpenseTracker = () => {
                         >
                             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
-
-                        {/* Profile Menu Dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                className={glassTheme.buttonSec}
-                                title="Profile"
-                            >
-                                <User size={20} />
-                            </button>
-
-                            {isProfileMenuOpen && (
-                                <div className={`absolute right-0 mt-3 w-48 rounded-2xl shadow-xl border backdrop-blur-xl z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right ${darkMode ? 'bg-[#0c0e1a]/90 border-slate-700/50' : 'bg-white/90 border-slate-200/50'}`}>
-                                    <div className="p-1">
-                                        <button
-                                            onClick={() => {
-                                                setIsProfileMenuOpen(false);
-                                                handleDeleteAccount();
-                                            }}
-                                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium transition-all ${darkMode ? 'text-rose-400 hover:bg-white/5' : 'text-rose-500 hover:bg-slate-100'}`}
-                                        >
-                                            <UserX size={16} />
-                                            Delete Account
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setIsProfileMenuOpen(false);
-                                                signOut();
-                                            }}
-                                            className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium transition-all ${darkMode ? 'text-slate-300 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
-                                        >
-                                            <LogOut size={16} />
-                                            Sign Out
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
 
                         <button onClick={handleExport} className={`${glassTheme.buttonSec} flex items-center gap-2`} title="Export Data">
                             <Download size={20} />
@@ -524,11 +486,61 @@ const ExpenseTracker = () => {
 
                         <button
                             onClick={() => setIsFormOpen(true)}
-                            className={`${glassTheme.buttonPri} flex items-center gap-2 justify-center ml-2`}
+                            className={`${glassTheme.buttonPri} flex items-center gap-2 justify-center ml-2 mr-2`}
                         >
                             <Plus size={22} strokeWidth={3} />
                             Add New
                         </button>
+
+                        <div className={`h-8 w-[1px] mx-1 ${darkMode ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+
+                        {/* Profile Menu Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                className={`${glassTheme.buttonSec} ${isProfileMenuOpen ? (darkMode ? 'bg-slate-700/60 text-white' : 'bg-white text-blue-600 border-blue-200') : ''}`}
+                                title="Profile"
+                            >
+                                <User size={20} />
+                            </button>
+
+                            {isProfileMenuOpen && (
+                                <div className={`absolute right-0 mt-3 w-56 rounded-2xl shadow-2xl border backdrop-blur-xl z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top-right ${darkMode ? 'bg-[#0c0e1a]/95 border-slate-700/60 shadow-black/50' : 'bg-white/95 border-slate-200/60 shadow-xl'}`}>
+                                    <div className="p-2 border-b border-dashed border-slate-200 dark:border-slate-700 mb-1">
+                                        <p className={`text-xs font-bold px-2 py-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            Signed in as <br />
+                                            <span className={darkMode ? 'text-slate-200' : 'text-slate-800'}>{user?.email}</span>
+                                        </p>
+                                    </div>
+                                    <div className="p-1 space-y-1">
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileMenuOpen(false);
+                                                handleDeleteAccount();
+                                            }}
+                                            className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-semibold transition-all ${darkMode ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-500 hover:bg-rose-50'}`}
+                                        >
+                                            <div className="p-1.5 rounded-lg bg-rose-500/10">
+                                                <UserX size={14} />
+                                            </div>
+                                            Delete Account
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsProfileMenuOpen(false);
+                                                signOut();
+                                            }}
+                                            className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-semibold transition-all ${darkMode ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}
+                                        >
+                                            <div className="p-1.5 rounded-lg bg-slate-500/10 text-slate-500">
+                                                <LogOut size={14} />
+                                            </div>
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
 
