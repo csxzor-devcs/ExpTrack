@@ -459,7 +459,7 @@ const ExpenseTracker = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     {/* Bar Chart Container */}
-                    <div className={`${glassTheme.card} rounded-3xl p-8 pop-in flex flex-col`} style={{ animationDelay: '400ms' }}>
+                    <div className={`${glassTheme.card} rounded-3xl p-6 sm:p-8 pop-in flex flex-col`} style={{ animationDelay: '400ms' }}>
                         <div className="flex items-center gap-3 mb-8">
                             <div className={`p-2.5 rounded-xl ${darkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
                                 <BarChart3 size={22} />
@@ -490,14 +490,14 @@ const ExpenseTracker = () => {
                     </div>
 
                     {/* Pie Chart Container */}
-                    <div className={`${glassTheme.card} rounded-3xl p-8 pop-in flex flex-col`} style={{ animationDelay: '500ms' }}>
+                    <div className={`${glassTheme.card} rounded-3xl p-6 sm:p-8 pop-in flex flex-col`} style={{ animationDelay: '500ms' }}>
                         <div className="flex items-center gap-3 mb-8">
                             <div className={`p-2.5 rounded-xl ${darkMode ? 'bg-pink-500/20 text-pink-400' : 'bg-pink-50 text-pink-600'}`}>
                                 <PieChartIcon size={22} />
                             </div>
                             <h3 className={`font-bold text-xl ${darkMode ? 'text-white' : 'text-slate-800'}`}>Breakdown</h3>
                         </div>
-                        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-10 h-56">
+                        <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-6 sm:gap-10 min-h-[300px] lg:h-56">
                             {stats.categoryData.length > 0 ? (
                                 <>
                                     <div className="w-48 h-48 shrink-0 relative hover:scale-105 transition-transform duration-500 ease-out bg-transparent select-none">
@@ -610,14 +610,35 @@ const ExpenseTracker = () => {
                                         style={{ animationDelay: `${idx * 30}ms` }}
                                     >
                                         {/* Mobile View */}
-                                        <div className="flex justify-between md:hidden mb-3">
+                                        <div className="flex justify-between md:hidden mb-1">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2.5 rounded-xl shadow-lg border border-white/10" style={{ backgroundColor: `${color}20`, color: color }}>
                                                     {icon}
                                                 </div>
-                                                <span className={`text-base font-black ${darkMode ? 'text-white' : 'text-slate-800'}`}>{expense.description}</span>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-base font-black leading-tight ${darkMode ? 'text-white' : 'text-slate-800'}`}>{expense.description}</span>
+                                                    <span className={`text-[10px] font-bold opacity-60 mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                        {new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {expense.category}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <span className={`font-black text-lg ${darkMode ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(expense.amount)}</span>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <span className={`font-black text-lg ${darkMode ? 'text-white' : 'text-slate-800'}`}>{formatCurrency(expense.amount)}</span>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleEditClick(expense); }}
+                                                        className={`p-2 rounded-xl transition-all ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); handleDelete(expense.id); }}
+                                                        className={`p-2 rounded-xl transition-all ${darkMode ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         {/* Desktop View */}
@@ -652,7 +673,7 @@ const ExpenseTracker = () => {
                                             {formatCurrency(expense.amount)}
                                         </div>
 
-                                        <div className="col-span-1 text-right flex justify-end gap-2 pr-2">
+                                        <div className="col-span-1 text-right hidden md:flex justify-end gap-2 pr-2">
                                             <button
                                                 onClick={() => handleEditClick(expense)}
                                                 className={`p-2.5 rounded-2xl transition-all duration-200 opacity-0 group-hover:opacity-100 ${darkMode ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white'} hover:scale-110 active:scale-90 shadow-lg`}
@@ -814,7 +835,7 @@ const StatCard = ({ title, amount, icon, trend, glassTheme, delay, darkMode, gra
                         {trend}
                     </span>
                     {interactive && (
-                        <span className={`text-[9px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all translate-y-0 md:translate-y-1 md:group-hover:translate-y-0 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                             Click to View History
                         </span>
                     )}
@@ -848,31 +869,30 @@ const HistoryModal = ({ type, data, onClose, darkMode, glassTheme, formatCurrenc
                     </div>
                     <button onClick={onClose} className={`p-3 rounded-full hover:bg-black/10 transition-all ${glassTheme.textMuted} hover:text-white`}>✕</button>
                 </div>
-
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                     {/* Period Sidebar */}
-                    <div className={`w-1/3 border-r overflow-y-auto custom-scrollbar ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                        <div className="p-4 space-y-2">
+                    <div className={`w-full md:w-1/3 border-b md:border-b-0 md:border-r overflow-y-auto custom-scrollbar h-40 md:h-auto ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                        <div className="p-3 md:p-4 md:space-y-2 flex md:block overflow-x-auto md:overflow-x-visible gap-2 md:gap-0">
                             {data.map((period) => (
                                 <button
                                     key={period.period}
                                     onClick={() => setSelectedPeriod(period)}
-                                    className={`w-full p-5 rounded-2xl text-left transition-all relative overflow-hidden group ${selectedPeriod?.period === period.period
+                                    className={`shrink-0 md:shrink md:w-full p-4 md:p-5 rounded-2xl text-left transition-all relative overflow-hidden group ${selectedPeriod?.period === period.period
                                         ? (darkMode ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-100')
                                         : (darkMode ? 'hover:bg-white/5 border border-transparent' : 'hover:bg-slate-50 border border-transparent')
                                         }`}
                                 >
-                                    <div className="relative z-10 flex justify-between items-center">
+                                    <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-center">
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">{period.period}</p>
-                                            <p className="font-bold text-sm">{period.label}</p>
+                                            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60 mb-0.5 md:mb-1">{period.period}</p>
+                                            <p className="font-bold text-xs md:text-sm whitespace-nowrap">{period.label}</p>
                                         </div>
-                                        <p className={`font-black tracking-tighter ${selectedPeriod?.period === period.period ? 'text-blue-500' : (darkMode ? 'text-white' : 'text-slate-900')}`}>
+                                        <p className={`font-black tracking-tighter mt-1 md:mt-0 ${selectedPeriod?.period === period.period ? 'text-blue-500' : (darkMode ? 'text-white' : 'text-slate-900')}`}>
                                             {formatCurrency(period.total)}
                                         </p>
                                     </div>
                                     {selectedPeriod?.period === period.period && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
+                                        <div className="absolute left-0 right-0 bottom-0 md:top-0 md:right-auto md:w-1 md:h-auto h-1 bg-blue-500" />
                                     )}
                                 </button>
                             ))}
@@ -880,7 +900,7 @@ const HistoryModal = ({ type, data, onClose, darkMode, glassTheme, formatCurrenc
                     </div>
 
                     {/* Transaction List */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8">
                         {selectedPeriod ? (
                             <div className="space-y-6">
                                 <div className="flex justify-between items-end pb-6 border-b border-dashed border-slate-700/50">
