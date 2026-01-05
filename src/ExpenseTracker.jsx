@@ -1002,7 +1002,7 @@ const SimpleBarChart = ({ data, darkMode, selectedDate, onBarClick }) => {
                         {/* The Bar with Premium Gradient and Shadow */}
                         <div
                             style={{ height: `${heightPercent}%` }}
-                            className={`w-full max-w-[42px] rounded-t-2xl transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) relative overflow-hidden ${isAnySelected && !isSelected ? 'opacity-30 scale-95' : 'opacity-100'
+                            className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[42px] rounded-t-xl md:rounded-t-2xl transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) relative overflow-hidden ${isAnySelected && !isSelected ? 'opacity-30 scale-95' : 'opacity-100'
                                 } ${item.value > 0
                                     ? (isSelected
                                         ? 'bg-gradient-to-t from-blue-600 via-indigo-500 to-purple-400 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
@@ -1015,7 +1015,7 @@ const SimpleBarChart = ({ data, darkMode, selectedDate, onBarClick }) => {
                             <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
                         </div>
 
-                        <span className={`text-[10px] uppercase font-black mt-4 tracking-[0.15em] transition-all duration-300 ${isSelected
+                        <span className={`text-[8px] md:text-[10px] uppercase font-black mt-4 tracking-tighter md:tracking-[0.15em] transition-all duration-300 ${isSelected
                             ? (darkMode ? 'text-blue-400' : 'text-blue-600')
                             : (darkMode ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-slate-600')
                             }`}>
