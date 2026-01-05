@@ -561,7 +561,7 @@ const ExpenseTracker = () => {
                                 className={`${glassTheme.input} pl-12`}
                             />
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 w-full">
                             <button
                                 onClick={() => setIsFormOpen(true)}
                                 className={`hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${glassTheme.buttonPri}`}
@@ -575,22 +575,22 @@ const ExpenseTracker = () => {
                                     className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-2 ${darkMode ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-rose-50 text-rose-600 border border-rose-100'
                                         } hover:scale-105`}
                                 >
-                                    Clear All ✕
+                                    Clear ✕
                                 </button>
                             )}
                             {selectedCategory && (
-                                <div className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider ${darkMode ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                                <div className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider ${darkMode ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'
                                     }`}>
                                     {selectedCategory}
                                 </div>
                             )}
                             {selectedDate && (
-                                <div className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider ${darkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                                <div className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider ${darkMode ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
                                     }`}>
                                     {selectedDate}
                                 </div>
                             )}
-                            <div className={`text-sm font-semibold px-4 py-2 rounded-xl backdrop-blur-md ${darkMode ? 'bg-white/5 text-slate-300' : 'bg-black/5 text-slate-600'}`}>
+                            <div className={`text-[10px] sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl backdrop-blur-md ${darkMode ? 'bg-white/5 text-slate-300' : 'bg-black/5 text-slate-600'}`}>
                                 {filteredExpenses.length} Records
                             </div>
                         </div>
@@ -606,7 +606,7 @@ const ExpenseTracker = () => {
                     </div>
 
                     {/* Expenses List */}
-                    <div className={`divide-y ${glassTheme.divider} max-h-[600px] overflow-y-auto custom-scrollbar`}>
+                    <div className={`divide-y ${glassTheme.divider} max-h-[600px] overflow-y-auto custom-scrollbar pb-24 md:pb-0`}>
                         {filteredExpenses.length > 0 ? (
                             filteredExpenses.map((expense, idx) => {
                                 const { color, icon } = getCategoryDetails(expense.category);
@@ -747,7 +747,7 @@ const ExpenseTracker = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className={`block text-xs font-bold uppercase tracking-wider ${glassTheme.textMuted}`}>Amount</label>
                                     <div className="relative">
@@ -801,11 +801,11 @@ const ExpenseTracker = () => {
             {/* Floating Action Button (FAB) for Quick Add */}
             <button
                 onClick={() => setIsFormOpen(true)}
-                className={`fixed bottom-8 right-8 z-40 p-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-110 active:scale-90 flex items-center justify-center group ${glassTheme.buttonPri}`}
+                className={`fixed bottom-6 right-6 md:bottom-8 md:right-8 z-40 p-3.5 md:p-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-110 active:scale-90 flex items-center justify-center group ${glassTheme.buttonPri}`}
                 title="Quick Add Expense"
             >
-                <Plus size={28} className="transition-transform duration-500 group-hover:rotate-90" />
-                <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 font-bold text-sm uppercase tracking-widest">
+                <Plus size={window.innerWidth < 768 ? 24 : 28} className="transition-transform duration-500 group-hover:rotate-90" />
+                <span className="hidden md:inline-block max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 font-bold text-sm uppercase tracking-widest">
                     Quick Add
                 </span>
             </button>
